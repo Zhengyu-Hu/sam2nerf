@@ -2,6 +2,12 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 def show_mask(mask, ax, random_color=False, borders = True):
+    '''
+    mask: the mask to be shown
+    ax: the axis on which the mask will be shown
+    random_color: if True, the mask will be shown in a random color
+    borders: if True, the mask will be shown with borders
+    '''
     if random_color:
         color = np.concatenate([np.random.random(3), np.array([0.6])], axis=0)
     else:
