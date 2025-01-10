@@ -101,12 +101,10 @@ def split_for_back(video_dir, seg_idx, suffix=('jpeg', 'jpg', 'JPG', 'JPEG')):
 
 if __name__ == '__main__':
     # Convert png to jpeg
-    """ pngs_dir = 'render_result/lego'
-    save_dir = 'render_result/lego-jpeg'
-    batch_png2jpeg(pngs_dir, save_dir) """
-    video_dir = 'render_result/lego-jpeg'
-    suffix = ('jpeg', 'jpg', 'JPG', 'JPEG')
-    seg_idx = 7
-    split_for_back(video_dir, seg_idx)
+    exp_name = 'fern'
+    pngs_dir = 'render_result/raw/'+exp_name
+    save_dir = 'render_result/'+exp_name
+    batch_png2jpeg(pngs_dir, save_dir)
+
 
    
