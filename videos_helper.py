@@ -67,10 +67,45 @@ def circular_rename(video_dir, selected_idx, suffix=('jpeg', 'jpg', 'JPG', 'JPEG
         shutil.copy2(old_path, temp_path)
     
     return temp_dir
+
+def make_tmp_dir(dir):
+    if os.path.exists(dir):
+        shutil.rmtree(dir)
+    os.makedirs(dir)
+
+def split_for_back(video_dir, seg_idx, suffix=('jpeg', 'jpg', 'JPG', 'JPEG')):
+    frame_names = [
+        f for f in sorted(os.listdir(video_dir)) if f.endswith(suffix)
+    ]
+    total_frames = len(frame_names)
+
+    forward_dir = os.path.join(video_dir,'forward_frames')
+    backward_dir = os.path.join(video_dir,'backward_frames')
+    make_tmp_dir(forward_dir)
+    make_tmp_dir(backward_dir)
+
+    for i in range(seg_idx,total_frames):
+        source = os.path.join(video_dir, frame_names[i])
+        destination = os.path.join(forward_dir, f'{i:03}.jpeg')
+        shutil.copy(source, destination)
+
+    for i in range(seg_idx+1):
+        source = os.path.join(video_dir, frame_names[i])
+        new_idx = seg_idx-i
+        destination = os.path.join(backward_dir, f'{new_idx:03}.jpeg')
+        shutil.copy(source, destination)
+    
+    return forward_dir, backward_dir
+
+
 if __name__ == '__main__':
     # Convert png to jpeg
     """ pngs_dir = 'render_result/lego'
     save_dir = 'render_result/lego-jpeg'
     batch_png2jpeg(pngs_dir, save_dir) """
+    video_dir = 'render_result/lego-jpeg'
+    suffix = ('jpeg', 'jpg', 'JPG', 'JPEG')
+    seg_idx = 7
+    split_for_back(video_dir, seg_idx)
 
    
