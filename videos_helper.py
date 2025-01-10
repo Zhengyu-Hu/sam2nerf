@@ -73,6 +73,7 @@ def make_tmp_dir(dir):
         shutil.rmtree(dir)
     os.makedirs(dir)
 
+# Simply use reverse = True in propagate_in_video
 def split_for_back(video_dir, seg_idx, suffix=('jpeg', 'jpg', 'JPG', 'JPEG')):
     frame_names = [
         f for f in sorted(os.listdir(video_dir)) if f.endswith(suffix)

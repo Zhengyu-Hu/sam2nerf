@@ -23,19 +23,15 @@ plt.imshow(img)
 plt.show() """
 frame_names = [f for f in sorted(os.listdir(video_dir)) 
           if f.endswith(suffix)]
-forward_dir, backward_dir = split_for_back(video_dir, seg_idx, suffix)
 
 # Add positive clicks
 obj_id = 2
 points = np.array([[300, 125],[325, 160],[250,125]], dtype=np.float32)
 labels = np.ones(points.shape[0])
-
-#  Forward state
-print('-----','Forward State','-----')
-inference_state = predictor.init_state(video_path=forward_dir)
+inference_state = predictor.init_state(video_path=video_dir)
 # Segment and show the result
 _, out_obj_ids, out_mask_logits = predictor.add_new_points_or_box(inference_state=inference_state,
-                                                                  frame_idx=0,
+                                                                  frame_idx=seg_idx,
                                                                   obj_id=obj_id,
                                                                   points=points,
                                                                   labels=labels,)
@@ -48,26 +44,20 @@ mask.savefig(f'Frame_{seg_idx}_seg_2Dmask.png')
 
 # run propagation throughout the video and collect the results in a dict
 video_segments = {}  # video_segments contains the per-frame segmentation results
+
+print('Forward Propagation','-'*100)
 for out_frame_idx, out_obj_ids, out_mask_logits in predictor.propagate_in_video(inference_state):
-        video_segments[out_frame_idx+seg_idx] = {
+        video_segments[out_frame_idx] = {
         out_obj_id: (out_mask_logits[i] > 0.0).cpu().numpy()
         for i, out_obj_id in enumerate(out_obj_ids)
     }
-
-# Backward state
-print('-----','Backward State','-----')
-inference_state = predictor.init_state(video_path=backward_dir)
-_, out_obj_ids, out_mask_logits = predictor.add_new_points_or_box(inference_state=inference_state,
-                                                                  frame_idx=0,
-                                                                  obj_id=obj_id,
-                                                                  points=points,
-                                                                  labels=labels,)
-for out_frame_idx, out_obj_ids, out_mask_logits in predictor.propagate_in_video(inference_state):
-        video_segments[seg_idx-out_frame_idx] = {
+# backward propagation
+print('Backward Propagation','-'*100)
+for out_frame_idx, out_obj_ids, out_mask_logits in predictor.propagate_in_video(inference_state,reverse=True):
+        video_segments[out_frame_idx] = {
         out_obj_id: (out_mask_logits[i] > 0.0).cpu().numpy()
         for i, out_obj_id in enumerate(out_obj_ids)
     }
-
 # render the segmentation results every few frames
 '''
 vis_frame_stride = 5
@@ -78,7 +68,6 @@ for out_frame_idx in range(seg_idx, len(frame_names), vis_frame_stride):
         show_mask(out_mask, plt.gca(), obj_id=out_obj_id)
         plt.show()
 '''
-
 from matplotlib.animation import FuncAnimation
 fig = plt.figure()
 def init():
@@ -88,7 +77,7 @@ def show_seg_frame(frame_idx):
     for out_obj_id, out_mask in video_segments[frame_idx].items():
         show_mask(out_mask, plt.gca(), obj_id=out_obj_id)
 frame = np.arange(0, len(frame_names))
-print('-----','Generate Results','-----')
+print('Start to generate result ...')
 ani = FuncAnimation(fig, show_seg_frame, frames=frame, init_func=init)
 ani.save("seg_video.gif", fps=20)
-print('-----','Done','-----')
+print('Done')
